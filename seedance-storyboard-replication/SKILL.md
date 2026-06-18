@@ -76,7 +76,7 @@ Read `references/seedance-prompt.md` and `references/jimmyai-api.md` before asse
 1. Confirm the user approved the storyboard and understands the four-image allocation.
 2. Upload the reference video, approved storyboard image, character board, and product board(s) with `scripts/cos_publish.py`.
 3. The dedicated COS bucket should be `公有读私有写`. Uploaded media uses anonymous public HTTPS URLs, not presigned URLs.
-4. Build the prompt under 5000 characters. Include actual `@图片N` mapping, Cut-local timecodes, product/person identity locks, camera/action directions, voiceover, and real environment/action sound.
+4. Build the prompt under 5000 characters. Include the actual `@图片1` to `@图片4` mapping, Cut-local timecodes, product/person identity locks, camera/action directions, voiceover, and real environment/action sound.
 5. Do not use `reference_audios`; JimmyAI does not accept uploaded reference audio for this route.
 6. Audio policy: request voiceover plus environment/action sound, and **不默认添加背景音乐** unless the user explicitly asks for music.
 7. Call `scripts/seedance_submit.py` with `model=seedance2.0-fast-md`, `ratio=9:16`, `duration=1-15`, `images`, and `reference_videos`.
