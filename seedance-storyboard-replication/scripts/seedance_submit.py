@@ -59,14 +59,17 @@ def build_payload(
     if len(image_urls) > 4:
         raise PayloadError("seedance2.0-fast-md accepts at most 4 images")
     _require_public_https_urls([*image_urls, *reference_video_urls])
-    return {
+    payload: dict[str, Any] = {
         "model": "seedance2.0-fast-md",
         "prompt": normalized_prompt,
         "duration": int(duration),
         "ratio": ratio,
-        "images": list(image_urls),
-        "reference_videos": list(reference_video_urls),
     }
+    if image_urls:
+        payload["images"] = list(image_urls)
+    if reference_video_urls:
+        payload["reference_videos"] = list(reference_video_urls)
+    return payload
 
 
 def _is_success_code(code: Any) -> bool:
@@ -224,7 +227,13 @@ def poll_task(
                 raise SeedanceApiError("completed task did not include data.result.video_url")
             return str(video_url)
         if status == "failed":
-            message = data.get("message") or data.get("error") or response.get("message") or "Seedance task failed"
+            message = (
+                data.get("error_message")
+                or data.get("message")
+                or data.get("error")
+                or response.get("message")
+                or "Seedance task failed"
+            )
             raise TaskFailedError(str(message))
         if status not in RUNNING:
             raise SeedanceApiError(f"unknown Seedance task status: {status or '<empty>'}")

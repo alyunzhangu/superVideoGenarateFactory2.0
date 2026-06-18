@@ -58,6 +58,18 @@ class SeedanceSubmitTest(unittest.TestCase):
         self.assertNotIn("reference_audios", payload)
         self.assertEqual(payload["reference_videos"], ["https://cos.example/reference.mp4"])
 
+    def test_omits_optional_media_fields_when_empty(self) -> None:
+        payload = build_payload(
+            prompt="Generate from the complete script.",
+            duration=10,
+            ratio="9:16",
+            image_urls=[],
+            reference_video_urls=[],
+        )
+
+        self.assertNotIn("images", payload)
+        self.assertNotIn("reference_videos", payload)
+
     def test_rejects_more_than_four_images(self) -> None:
         with self.assertRaisesRegex(PayloadError, "at most 4"):
             build_payload(
@@ -127,6 +139,26 @@ class SeedanceSubmitTest(unittest.TestCase):
         )
 
         with self.assertRaisesRegex(TaskFailedError, "bad prompt"):
+            poll_task(client, "task-1", timeout=60, poll_interval=1)
+
+    def test_poll_failure_reports_provider_error_message(self) -> None:
+        client = JimmyAiClient(
+            "jimmy-secret",
+            request_json=FakeTransport(
+                [
+                    {
+                        "code": 0,
+                        "data": {
+                            "status": "failed",
+                            "error_message": "PROVIDER_MODERATION_ERROR",
+                        },
+                    }
+                ]
+            ),
+            sleep=lambda _: None,
+        )
+
+        with self.assertRaisesRegex(TaskFailedError, "PROVIDER_MODERATION_ERROR"):
             poll_task(client, "task-1", timeout=60, poll_interval=1)
 
     def test_poll_timeout_without_sleeping(self) -> None:
