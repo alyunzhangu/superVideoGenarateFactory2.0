@@ -810,6 +810,8 @@ Keep it under 500 lines. Include these exact behavioral sections:
 
 Route 1 skips script confirmation and stops after every image2 storyboard revision. Route 2 stops after the fukeGem script and again after every storyboard revision. Both routes must wait for explicit approval before the paid Seedance call. Tell users about the four-image allocation before submission and ask them to prepare product boards when needed.
 
+The COS submission section must state that the dedicated bucket is `公有读私有写`, that uploaded media uses anonymous public HTTPS URLs, and that product boards preserve the user's original product pixels rather than AI-redrawing the product. The final assembly section must require FFmpeg concatenation to preserve audio and fail when an expected segment audio stream is missing.
+
 - [ ] **Step 6: Regenerate UI metadata and run contract tests**
 
 ```bash
