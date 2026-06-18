@@ -1,0 +1,4 @@
+interface:
+  display_name: "Seedance Storyboard Replication"
+  short_description: "复刻带货短视频并通过 Seedance 生成成片"
+  default_prompt: "使用参考视频、分镜脚本和产品素材生成故事板与 Seedance 成片。"
