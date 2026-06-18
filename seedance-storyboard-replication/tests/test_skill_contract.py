@@ -106,6 +106,29 @@ class SkillContractTest(unittest.TestCase):
         ):
             self.assertIn(required, text)
 
+    def test_storyboard_prompt_uses_fixed_skeleton_with_dynamic_fields(self):
+        prompt_text = (
+            SKILL_ROOT / "references" / "daohuo_storyboard_prompt.md"
+        ).read_text(encoding="utf-8")
+        for required in (
+            "固定骨架",
+            "动态填充",
+            "{{VIDEO_TITLE}}",
+            "{{DURATION}}",
+            "{{SHOT_COUNT}}",
+            "{{CHARACTER_REFERENCE_ROLE}}",
+            "{{PRODUCT_REFERENCE_ROLE}}",
+            "{{REFERENCE_VIDEO_ROLE}}",
+            "{{SHOT_CARDS}}",
+            "{{EXACT_LABELS}}",
+            "不得保留未替换占位符",
+        ):
+            self.assertIn(required, prompt_text)
+
+        skill_text = (SKILL_ROOT / "SKILL.md").read_text(encoding="utf-8")
+        self.assertIn("固定骨架 + 动态填充", skill_text)
+        self.assertIn("only storyboard prompt source", skill_text)
+
     def test_seedance_prompt_carries_script_text_not_storyboard_text(self):
         text = (SKILL_ROOT / "references" / "seedance-prompt.md").read_text(
             encoding="utf-8"

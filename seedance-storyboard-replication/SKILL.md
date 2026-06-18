@@ -43,6 +43,7 @@ Use this route when the user has only the reference video plus character/product
 
 The storyboard is the main user-facing quality gate.
 
+- Use `references/daohuo_storyboard_prompt.md` as the only storyboard prompt source. Follow its **固定骨架 + 动态填充** contract: keep the layout and constraints fixed, then replace every placeholder with the current approved script, character, product, reference-video role, and exact short labels before calling image2. Never maintain or improvise a second generic storyboard prompt.
 - Use `image2` for storyboard image generation and targeted revisions.
 - Generate one `16:9 横版电影制作板` first, not separate images per Cut. The board must include character/style reference, person detail close-ups, product reference, environment/movement plan, storyboard frames, lighting/mood notes, audio/tone notes, and cinematography notes.
 - 故事板图片只承载视觉参考和重要事项。Each Cut card may show only its Cut number, time range, one short key action, and one critical identity/product constraint. Do not typeset the full script, long voiceover, or dense production notes into the generated image.
