@@ -99,6 +99,33 @@ class SkillContractTest(unittest.TestCase):
             "情绪和关键词块",
             "音频/音调部分",
             "电影摄影笔记",
+            "重要事项",
+            "分镜图只保留",
+            "不要在故事板图片中排版完整分镜脚本",
+            "不要依赖故事板图片中的文字",
+        ):
+            self.assertIn(required, text)
+
+    def test_seedance_prompt_carries_script_text_not_storyboard_text(self):
+        text = (SKILL_ROOT / "references" / "seedance-prompt.md").read_text(
+            encoding="utf-8"
+        )
+        for required in (
+            "完整分镜脚本",
+            "脚本描述",
+            "口播内容",
+            "备注",
+            "不要依赖故事板图片中的文字",
+            "The storyboard image is a visual reference",
+        ):
+            self.assertIn(required, text)
+
+    def test_skill_separates_visual_board_from_seedance_script(self):
+        text = (SKILL_ROOT / "SKILL.md").read_text(encoding="utf-8")
+        for required in (
+            "故事板图片只承载视觉参考和重要事项",
+            "完整分镜脚本必须作为文本写入 Seedance prompt",
+            "不要让 Seedance 从故事板图片中识别完整脚本",
         ):
             self.assertIn(required, text)
 

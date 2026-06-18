@@ -33,6 +33,7 @@
 不要改变产品出现与使用的逻辑。  
 不要擅自新增无关角色、无关场景或无关道具。  
 不要把口播、字幕、标题、分镜说明、脚本备注直接生成到画面主体里。  
+故事板图片用于确认人物、产品、场景、构图、动作与镜头节奏，不承担完整脚本传输。不要依赖故事板图片中的文字作为后续 Seedance 指令；完整分镜脚本会在提交 Seedance 时作为独立文本再次传入。
 最终画面必须是干净、真实、自然、可用于视频制作参考的故事板画面。
 
 ---
@@ -277,6 +278,10 @@
    - 展示约 8-9 个编号分镜，严格对应 `@分镜脚本`。
    - 每个分镜需要体现：摄像机类型 / 镜头感觉、景别（广角、中景、特写、微距）、运动方式（静态、跟踪、手持、推近、俯拍等）、动作和情绪进展。
    - 每格之间必须有明显差异，避免场景过于相似。
+   - **分镜图只保留重要事项**：`Cut 编号 + 时间范围 + 一个关键动作 + 一个必要约束`，例如 `Cut 4 / 3.1-4.0s / 包身纹理微距 / logo 与针织纹理不变形`。
+   - 重要事项使用短标签，每条尽量不超过 12 个汉字；不要在故事板图片中排版完整分镜脚本、长段口播内容或密集备注。
+   - 不要依赖故事板图片中的文字向 Seedance 传递剧情。完整分镜脚本、口播和备注必须在 Seedance prompt 中以文本形式逐 Cut 重复。
+   - image2 无法稳定生成的小字号中文应留空，保留干净的说明条；需要显示的短标签在出图后使用确定性字体排版补充。不得保留乱码、伪中文、扭曲字形或猜测性文字。
 
 6. **灯光/情绪/风格备注**
    - 用小图或色块展示光线条件、时间感、纹理质感和情绪变化。
@@ -308,7 +313,7 @@
 - 故事板图片比例：16:9 横版电影制作板
 - 整体风格：
 
-### 2. 分镜故事板
+### 2. 完整分镜文本（独立保存，不排入故事板图片）
 
 请按以下表格输出：
 
@@ -321,8 +326,19 @@
 
 > 如果 `@分镜脚本` 超过 4 个分镜，请继续追加 Cut 5、Cut 6……  
 > 如果 `@分镜脚本` 少于 4 个分镜，不要硬凑分镜，以脚本为准。
+> 这份完整分镜文本是后续 Seedance prompt 的信息源。故事板图片不得替代它。
 
-### 3. 可用于生成故事板画面的统一提示词
+### 3. 故事板图片分镜卡片
+
+每个卡片仅输出：
+
+- `Cut 编号 / 时间范围`
+- `重要事项：一个关键动作`
+- `必要约束：一个人物或产品一致性要求`
+
+不要把完整画面描述、长口播、声音细节或制作备注排入图片。
+
+### 4. 可用于生成故事板画面的统一提示词
 
 请将所有分镜整合成一段可用于生成故事板图片的提示词，要求：
 
@@ -332,9 +348,10 @@
 - 人物 / 手部 / 产品 / 场景保持一致。
 - 每格呈现不同的体验阶段：生活情境、产品出现、使用过程、细节近景、使用后状态、安静收束。
 - 真实生活短片质感，干净光线，真实材质，高清画面。
-- 画面主体不出现乱码、错误字幕、故事板边框文字、水印或伪品牌文字。
+- 分镜卡片只保留 Cut、时间、重要事项和必要约束；其余说明条留白，等待后置排版。
+- 画面主体不出现乱码、错误字幕、扭曲小字、密集段落、故事板边框伪文字、水印或伪品牌文字。
 
-### 4. Negative Prompt
+### 5. Negative Prompt
 
 text in main image, subtitles covering product, wrong Chinese characters, fake logo text, watermark, messy typography, storyboard label inside scene, low quality, blurry product, deformed product, wrong product category, inconsistent packaging, changing product color, duplicated product, broken package, melted product, dirty product, unrelated props, floating product, random scene change, inconsistent character, changing face, changing outfit, bad hands, extra fingers, missing fingers, deformed fingers, hand fused with product, distorted face, dirty face, dark circles, smoky eyes, overexposed face, product blocked by hand, product blocked by subtitles, anime, cartoon, manga, game CG, plastic skin, exaggerated expressions, fake before-after, unrealistic effect, illegal medical claim, overpromising, chaotic background, cluttered room, unrelated city, unrelated forest, unrelated desert, unrelated fantasy scene, hard-sell poster, shopping banner, loud promotional layout, extra people, extra limbs, motion broken, bad composition, no product focus.
 
@@ -353,15 +370,16 @@ text in main image, subtitles covering product, wrong Chinese characters, fake l
 
 产品必须始终保持真实一致，保持相同品类、形状、包装结构、颜色、材质、比例和关键细节。每个分镜都要明确产品位置、人物或手部动作、使用方式、体验重点、镜头景别、构图、光线和情绪。画面节奏应自然：生活情境 → 产品自然出现 → 使用过程 → 细节近景 → 使用后状态 → 安静收束。
 
-口播、字幕和说明文案可以作为故事板说明输出，但不要把大段文字直接生成在画面主体中。画面底部可预留 10%-15% 字幕安全区，不能遮挡人物脸部、手部操作、产品包装或关键细节。不要生成乱码、伪中文、错误品牌字样、水印、标题或无关文字。
+故事板图片只承载视觉参考和重要事项。分镜图只保留 Cut 编号、时间范围、一个关键动作和一个必要约束，短标签每条尽量不超过 12 个汉字。不要在故事板图片中排版完整分镜脚本、长段口播或密集备注；不要依赖故事板图片中的文字向 Seedance 传递剧情。无法稳定生成的小字号中文应留空并保留干净说明条，后续再用确定性字体排版补充。不要生成乱码、伪中文、扭曲字形、错误品牌字样、水印、标题或无关文字。
 
 整体风格为真实、干净、清晰、自然、有生活气息的产品体验短片。根据产品气质选择生活实拍感、干净质感、轻测评感、情绪短片感或清晰演示感。人物、手部、场景和道具必须服务于产品使用，不要让画面变成促销海报、硬广大片、夸张直播间、普通写真或纯情绪短片。
 
 输出格式：
 1. 视频基础设定：主题、产品、使用情境、内容重点、时长、画幅、整体风格。
-2. 分镜故事板表格：Cut、时间、画面内容、镜头/构图、人物/手部动作、产品呈现、体验重点/口播、字幕安全区、声音/动效。
-3. 可用于生成故事板画面的统一提示词。
-4. Negative Prompt。
+2. 完整分镜文本表格：独立保存，不排入故事板图片，后续完整写入 Seedance prompt。
+3. 故事板图片分镜卡片：仅包含 Cut、时间、重要事项和必要约束。
+4. 可用于生成故事板画面的统一提示词。
+5. Negative Prompt。
 
 Negative prompt: text in main image, subtitles covering product, wrong Chinese characters, fake logo text, watermark, messy typography, low quality, blurry product, deformed product, wrong product category, inconsistent packaging, changing product color, duplicated product, broken package, unrelated props, random scene change, inconsistent character, changing face, changing outfit, bad hands, extra fingers, missing fingers, deformed fingers, hand fused with product, distorted face, dirty face, product blocked by hand, product blocked by subtitles, anime, cartoon, manga, game CG, fake before-after, unrealistic effect, illegal medical claim, overpromising, chaotic background, unrelated scene, hard-sell poster, shopping banner, loud promotional layout, extra people, extra limbs, bad composition, no product focus.
 ```

@@ -45,6 +45,9 @@ The storyboard is the main user-facing quality gate.
 
 - Use `image2` for storyboard image generation and targeted revisions.
 - Generate one `16:9 横版电影制作板` first, not separate images per Cut. The board must include character/style reference, person detail close-ups, product reference, environment/movement plan, storyboard frames, lighting/mood notes, audio/tone notes, and cinematography notes.
+- 故事板图片只承载视觉参考和重要事项。Each Cut card may show only its Cut number, time range, one short key action, and one critical identity/product constraint. Do not typeset the full script, long voiceover, or dense production notes into the generated image.
+- Treat the approved script as the source of truth. 完整分镜脚本必须作为文本写入 Seedance prompt, including every Cut's script description, camera/action direction, voiceover, sound, continuity, and negative constraints.
+- 不要让 Seedance 从故事板图片中识别完整脚本. The storyboard image is a visual reference, not a text transport. If image2 deforms a short label, remove it or add it later with deterministic typography; never preserve garbled text for submission.
 - Preserve the confirmed Cut order. Do not invent shots, reorder Cuts, or turn product scenes into unrelated lifestyle scenes.
 - Product fidelity matters more than visual novelty. Product boards must preserve the user's original product pixels rather than AI-redrawing the product.
 - Every time a new storyboard image is produced, stop and ask the user to approve it before paid video generation.
@@ -76,7 +79,7 @@ Read `references/seedance-prompt.md` and `references/jimmyai-api.md` before asse
 1. Confirm the user approved the storyboard and understands the four-image allocation.
 2. Upload the reference video, approved storyboard image, character board, and product board(s) with `scripts/cos_publish.py`.
 3. The dedicated COS bucket should be `公有读私有写`. Uploaded media uses anonymous public HTTPS URLs, not presigned URLs.
-4. Build the prompt under 5000 characters. Include the actual `@图片1` to `@图片4` mapping, Cut-local timecodes, product/person identity locks, camera/action directions, voiceover, and real environment/action sound.
+4. Build the prompt under 5000 characters. Repeat the complete approved script as text, with the actual `@图片1` to `@图片4` mapping and, for every Cut, local timecode, 脚本描述, camera/action direction, product/person identity lock, 口播内容, sound, continuity, and 备注. Never replace these fields with “follow the storyboard image.”
 5. Do not use `reference_audios`; JimmyAI does not accept uploaded reference audio for this route.
 6. Audio policy: request voiceover plus environment/action sound, and **不默认添加背景音乐** unless the user explicitly asks for music.
 7. Call `scripts/seedance_submit.py` with `model=seedance2.0-fast-md`, `ratio=9:16`, `duration=1-15`, `images`, and `reference_videos`.
