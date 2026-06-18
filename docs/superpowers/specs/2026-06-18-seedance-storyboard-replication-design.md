@@ -166,11 +166,13 @@ Use the Tencent COS Python SDK to upload each local media file. Keep the impleme
 
 ## Configuration
 
-Default private configuration path:
+Private configuration path:
 
 ```text
-~/.codex/secrets/seedance-storyboard.env
+~/.codex/secrets/seedance.env
 ```
+
+Use this existing file as the only private configuration source. Do not create a separate `seedance-storyboard.env` file.
 
 Supported variables:
 
