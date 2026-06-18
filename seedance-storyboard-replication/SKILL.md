@@ -21,7 +21,7 @@ Both routes must tell the user before Seedance submission that `seedance2.0-fast
 Use this route when the user already uploaded or pasted a confirmed storyboard script.
 
 1. Read `references/daohuo_storyboard_prompt.md`.
-2. Use `image2` directly to generate one full storyboard overview image from the confirmed script plus product/person references.
+2. Use `image2` directly to generate one `16:9 横版电影制作板` from the confirmed script plus product/person references.
 3. Stop after generation for **确认故事板**. Ask whether the storyboard is approved for Seedance or needs changes.
 4. If the user requests changes, revise only the storyboard image according to their notes and stop again for approval.
 5. Only after explicit user approval, assemble the Seedance prompt and proceed to COS and Seedance submission.
@@ -35,7 +35,7 @@ Use this route when the user has only the reference video plus character/product
 1. Read `references/fukeGem.md`.
 2. Reverse-engineer the reference video into the Chinese storyboard script requested by `fukeGem.md`.
 3. Stop for **确认反解分镜脚本**. Do not generate storyboard images yet.
-4. After script approval, read `references/daohuo_storyboard_prompt.md` and use `image2` to generate one full storyboard overview image.
+4. After script approval, read `references/daohuo_storyboard_prompt.md` and use `image2` to generate one `16:9 横版电影制作板`.
 5. Stop for **确认故事板**. Revise with `image2` as many times as needed until the user explicitly approves.
 6. Only after explicit approval, assemble the Seedance prompt and proceed to COS and Seedance submission.
 
@@ -44,7 +44,7 @@ Use this route when the user has only the reference video plus character/product
 The storyboard is the main user-facing quality gate.
 
 - Use `image2` for storyboard image generation and targeted revisions.
-- Generate one overview storyboard first, not separate images per Cut.
+- Generate one `16:9 横版电影制作板` first, not separate images per Cut. The board must include character/style reference, person detail close-ups, product reference, environment/movement plan, storyboard frames, lighting/mood notes, audio/tone notes, and cinematography notes.
 - Preserve the confirmed Cut order. Do not invent shots, reorder Cuts, or turn product scenes into unrelated lifestyle scenes.
 - Product fidelity matters more than visual novelty. Product boards must preserve the user's original product pixels rather than AI-redrawing the product.
 - Every time a new storyboard image is produced, stop and ask the user to approve it before paid video generation.

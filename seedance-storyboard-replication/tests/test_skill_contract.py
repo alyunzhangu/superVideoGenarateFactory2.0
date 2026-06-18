@@ -63,6 +63,7 @@ class SkillContractTest(unittest.TestCase):
             "确认反解分镜脚本",
             "确认故事板",
             "image2",
+            "16:9 横版电影制作板",
             "reference_videos",
             "最多 4 张",
             "不默认添加背景音乐",
@@ -78,6 +79,28 @@ class SkillContractTest(unittest.TestCase):
             "seedance.env.example",
         ):
             self.assertTrue((SKILL_ROOT / "references" / name).is_file(), name)
+
+    def test_storyboard_prompt_requires_production_board_layout(self):
+        text = (SKILL_ROOT / "references" / "daohuo_storyboard_prompt.md").read_text(
+            encoding="utf-8"
+        )
+        for required in (
+            "16:9",
+            "导演预制作指南",
+            "共享创意指导",
+            "角色与风格参考",
+            "人物多角度",
+            "人物细节特写",
+            "产品参考区",
+            "环境和场景设计",
+            "俯视动线示意图",
+            "故事板分镜区",
+            "灯光/情绪/风格备注",
+            "情绪和关键词块",
+            "音频/音调部分",
+            "电影摄影笔记",
+        ):
+            self.assertIn(required, text)
 
 
 if __name__ == "__main__":
