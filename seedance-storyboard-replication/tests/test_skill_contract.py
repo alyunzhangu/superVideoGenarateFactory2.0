@@ -54,6 +54,31 @@ class SkillContractTest(unittest.TestCase):
         self.assertTrue((SKILL_ROOT / "references").is_dir())
         self.assertTrue((SKILL_ROOT / "scripts").is_dir())
 
+    def test_skill_declares_both_routes_and_approval_gates(self):
+        text = (SKILL_ROOT / "SKILL.md").read_text(encoding="utf-8")
+        for required in (
+            "路线一：已有分镜脚本",
+            "路线二：仅提供参考视频",
+            "不要二次确认分镜脚本",
+            "确认反解分镜脚本",
+            "确认故事板",
+            "image2",
+            "reference_videos",
+            "最多 4 张",
+            "不默认添加背景音乐",
+        ):
+            self.assertIn(required, text)
+
+    def test_required_references_exist(self):
+        for name in (
+            "fukeGem.md",
+            "daohuo_storyboard_prompt.md",
+            "seedance-prompt.md",
+            "jimmyai-api.md",
+            "seedance.env.example",
+        ):
+            self.assertTrue((SKILL_ROOT / "references" / name).is_file(), name)
+
 
 if __name__ == "__main__":
     unittest.main()
