@@ -108,14 +108,15 @@ After the required approvals:
 
 ## Duration and Segmentation Rules
 
+- Reject reference videos longer than 30 seconds before reverse engineering or storyboard generation.
+- Tell the user immediately after upload: videos up to 15 seconds are the most stable because they use one storyboard and one generation; videos from more than 17 through 30 seconds require two separately generated clips and a natural story handoff. A 30-second video must support a handoff at 15 seconds.
 - For a total duration up to 15 seconds, preserve the requested duration and submit one task.
 - For a total duration greater than 15 and no greater than 17 seconds, retime all Cuts proportionally into one 15-second task.
-- For a total duration greater than 17 seconds, partition contiguous Cuts into segments between 5 and 15 seconds.
-- A 20-second script normally becomes two balanced segments near 10 seconds each; `15 + 5` is allowed only when approved Cut boundaries make it the natural split.
-- Prefer existing Cut boundaries and keep complete actions and voiceover sentences together.
-- Choose the minimum number of segments that satisfies the 15-second maximum, then prefer balanced segment durations near `total_duration / segment_count`.
-- If a single Cut exceeds 15 seconds, split it at an internal action or camera beat.
-- Never create a trailing segment shorter than 5 seconds. Move the preceding boundary earlier until all segments satisfy the range.
+- For a total duration greater than 17 and no greater than 30 seconds, create exactly two segments and exactly two storyboard boards. Never create a third segment or third storyboard board.
+- Narrative analysis must select one explicit `split_boundary` before duration planning. The planner validates this selected point; it must never choose a boundary merely because it balances durations.
+- The legal split interval is `max(5, total - 15)` through `min(15, total - 5)`. For 25 seconds this is 10-15 seconds; for 27 seconds it is 12-15 seconds; for 30 seconds it is exactly 15 seconds.
+- Within that legal interval, choose the point that best completes an action, spoken sentence, story beat, scene transition, or deliberate visual transition. Character state, product position, screen direction, light, environment sound, and voiceover cadence must support the handoff.
+- If no approved Cut boundary works, identify an internal action beat inside the relevant Cut, revise the script boundary, and stop for user approval. If no natural internal beat works, stop and explain that the source cannot be generated faithfully under the two-segment limit; never hard-cut or add a third segment.
 - Convert global timecodes to segment-local timecodes in each Seedance prompt while retaining a global-to-local mapping artifact.
 - FFmpeg concatenation starts only after every segment has completed and downloaded successfully.
 
