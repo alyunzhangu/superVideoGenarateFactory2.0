@@ -64,11 +64,28 @@ class SkillContractTest(unittest.TestCase):
             "确认故事板",
             "image2",
             "16:9 横版电影制作板",
-            "reference_videos",
+            "固定 B 方案",
+            "参考视频仅用于反解分镜、节奏分析和故事板生成",
+            "禁止上传参考视频到 COS",
+            "禁止发送 `reference_videos`",
             "最多 4 张",
             "不默认添加背景音乐",
+            "确认 Seedance 提示词",
+            "approval_preview.json",
+            "请求摘要哈希",
+            "任何提示词或请求参数变化都会使旧确认失效",
         ):
             self.assertIn(required, text)
+
+    def test_both_routes_stop_for_exact_seedance_prompt_approval(self):
+        text = (SKILL_ROOT / "SKILL.md").read_text(encoding="utf-8")
+        self.assertIn("Route 1", text)
+        self.assertIn("Route 2", text)
+        self.assertGreaterEqual(text.count("确认 Seedance 提示词"), 3)
+        self.assertIn("完整 Seedance 提示词", text)
+        self.assertIn("图片映射", text)
+        self.assertIn("时长和分段计划", text)
+        self.assertIn("不得调用 Seedance", text)
 
     def test_required_references_exist(self):
         for name in (
@@ -121,6 +138,7 @@ class SkillContractTest(unittest.TestCase):
             "{{REFERENCE_VIDEO_ROLE}}",
             "{{SHOT_CARDS}}",
             "{{EXACT_LABELS}}",
+            "{{TRADEMARK_SAFETY_NOTE}}",
             "不得保留未替换占位符",
         ):
             self.assertIn(required, prompt_text)
@@ -140,8 +158,32 @@ class SkillContractTest(unittest.TestCase):
             "备注",
             "不要依赖故事板图片中的文字",
             "The storyboard image is a visual reference",
+            "禁止发送 `reference_videos`",
         ):
             self.assertIn(required, text)
+        self.assertNotIn("reference_videos[0]", text)
+
+    def test_jimmy_api_reference_locks_b_route_without_reference_video(self):
+        text = (SKILL_ROOT / "references" / "jimmyai-api.md").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("固定 B 方案", text)
+        self.assertIn("不要发送 `reference_videos`", text)
+        self.assertNotIn('"reference_videos": [', text)
+
+    def test_skill_classifies_known_provider_failures(self):
+        skill_text = (SKILL_ROOT / "SKILL.md").read_text(encoding="utf-8")
+        api_text = (SKILL_ROOT / "references" / "jimmyai-api.md").read_text(
+            encoding="utf-8"
+        )
+        for required in (
+            "PROVIDER_MODERATION_ERROR: TRADEMARK",
+            "Read timed out",
+            "s3 upload failed",
+            "DURATION_TOO_LONG",
+            "用户明确确认",
+        ):
+            self.assertIn(required, skill_text + api_text)
 
     def test_skill_separates_visual_board_from_seedance_script(self):
         text = (SKILL_ROOT / "SKILL.md").read_text(encoding="utf-8")

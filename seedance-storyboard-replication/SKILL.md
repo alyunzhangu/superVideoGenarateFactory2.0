@@ -16,15 +16,17 @@ Pick exactly one route from the user inputs:
 
 Both routes must tell the user before Seedance submission that `seedance2.0-fast-md` accepts **最多 4 张** image references in `images`: one storyboard image, optional one character board, and one or two product boards. If product assets exceed the remaining slots, ask the user to prepare a product board that combines product photos while preserving product pixels.
 
+Both routes use the **固定 B 方案**. 参考视频仅用于反解分镜、节奏分析和故事板生成; keep it local after the storyboard is approved. 禁止上传参考视频到 COS, and 禁止发送 `reference_videos` to Seedance. This rule also applies to Route 1 even when the user supplied an approved script together with a reference video.
+
 ## Route 1: Existing Storyboard Script
 
 Use this route when the user already uploaded or pasted a confirmed storyboard script.
 
 1. Read `references/daohuo_storyboard_prompt.md`.
-2. Use `image2` directly to generate one `16:9 横版电影制作板` from the confirmed script plus product/person references.
+2. Use `image2` directly to generate one `16:9 横版电影制作板` from the confirmed script, local reference video/frames, and product/person references.
 3. Stop after generation for **确认故事板**. Ask whether the storyboard is approved for Seedance or needs changes.
 4. If the user requests changes, revise only the storyboard image according to their notes and stop again for approval.
-5. Only after explicit user approval, assemble the Seedance prompt and proceed to COS and Seedance submission.
+5. Only after explicit storyboard approval, assemble the complete Seedance prompt from the approved script plus storyboard/person/product images, then stop for **确认 Seedance 提示词** before any API submission.
 
 Do not ask the user to reconfirm the script in this route. The only creative approval loop is the storyboard image.
 
@@ -37,7 +39,7 @@ Use this route when the user has only the reference video plus character/product
 3. Stop for **确认反解分镜脚本**. Do not generate storyboard images yet.
 4. After script approval, read `references/daohuo_storyboard_prompt.md` and use `image2` to generate one `16:9 横版电影制作板`.
 5. Stop for **确认故事板**. Revise with `image2` as many times as needed until the user explicitly approves.
-6. Only after explicit approval, assemble the Seedance prompt and proceed to COS and Seedance submission.
+6. Only after explicit storyboard approval, assemble the complete Seedance prompt from the approved script plus storyboard/person/product images, then stop for **确认 Seedance 提示词** before any API submission.
 
 ## Storyboard Approval Loop
 
@@ -62,7 +64,18 @@ Before calling Seedance, explicitly map the image references:
 - `@图片3`: product board 1.
 - `@图片4`: optional product board 2.
 
-The original reference video is uploaded separately through `reference_videos`, not counted inside the four image slots. If there are too many product photos, instruct the user to combine them into one or two product boards before submission.
+The reference video is an upstream analysis input only. Keep it local and do not publish it for Seedance. If there are too many product photos, instruct the user to combine them into one or two product boards before submission.
+
+## Seedance Prompt Approval Gate
+
+Both Route 1 and Route 2 must pass **确认 Seedance 提示词** after the latest storyboard approval.
+
+1. Assemble the 完整 Seedance 提示词 and final payload, then run `scripts/seedance_submit.py --dry-run`.
+2. Show the user the exact full prompt, 图片映射, model, ratio, duration, 时长和分段计划, and the image-only fixed-B request preview.
+3. Save `approval_preview.json` and show its 请求摘要哈希. Stop and ask the user to approve this exact request.
+4. Before explicit approval, 不得调用 Seedance or create any new paid task.
+5. After the user says **确认 Seedance 提示词**, submit with `--approved-request-sha256` set to the preview digest.
+6. 任何提示词或请求参数变化都会使旧确认失效. Rebuild the preview and stop for approval again. Resuming an already-created task ID is not a new paid submission and does not need another prompt approval.
 
 ## Duration Planning
 
@@ -78,14 +91,15 @@ Use `scripts/segment_plan.py` after the script has approved Cut boundaries.
 Read `references/seedance-prompt.md` and `references/jimmyai-api.md` before assembling the final request.
 
 1. Confirm the user approved the storyboard and understands the four-image allocation.
-2. Upload the reference video, approved storyboard image, character board, and product board(s) with `scripts/cos_publish.py`.
+2. Upload only the approved storyboard image, character board, and product board(s) with `scripts/cos_publish.py`. 禁止上传参考视频到 COS.
 3. The dedicated COS bucket should be `公有读私有写`. Uploaded media uses anonymous public HTTPS URLs, not presigned URLs.
 4. Build the prompt under 5000 characters. Repeat the complete approved script as text, with the actual `@图片1` to `@图片4` mapping and, for every Cut, local timecode, 脚本描述, camera/action direction, product/person identity lock, 口播内容, sound, continuity, and 备注. Never replace these fields with “follow the storyboard image.”
 5. Do not use `reference_audios`; JimmyAI does not accept uploaded reference audio for this route.
 6. Audio policy: request voiceover plus environment/action sound, and **不默认添加背景音乐** unless the user explicitly asks for music.
-7. Call `scripts/seedance_submit.py` with `model=seedance2.0-fast-md`, `ratio=9:16`, `duration=1-15`, `images`, and `reference_videos`.
+7. Run a dry-run, expose the exact prompt/request and `approval_preview.json`, then stop for **确认 Seedance 提示词**.
+8. Only after the matching 请求摘要哈希 is approved, call `scripts/seedance_submit.py` with `model=seedance2.0-fast-md`, `ratio=9:16`, `duration=1-15`, `images`, and `--approved-request-sha256`. 禁止发送 `reference_videos`.
 
-Never make a paid Seedance call until the user has explicitly approved the latest storyboard.
+Never make a paid Seedance call until the user has explicitly approved both the latest storyboard and the exact Seedance prompt preview.
 
 ## Download, Concatenation, and QC
 
@@ -98,9 +112,15 @@ When a Seedance task completes, immediately download `data.result.video_url` to 
 
 ## Failure and Resume Rules
 
-- Save `task_id.txt`, `request.redacted.json`, `create_response.json`, and `status.json` for each run.
+- Save `task_id.txt`, `request.redacted.json`, `approval_preview.json`, `create_response.json`, `status.json`, and `failure.json` when applicable.
 - Use `--resume-task-id` to continue a known JimmyAI task instead of submitting a duplicate paid task.
 - Retry only 429 and transient 5xx API responses. Treat 401/403 as configuration errors.
 - If COS upload fails, do not submit Seedance.
+- If a planned or dry-run payload contains `reference_videos`, stop before submission and rebuild it with the fixed B route.
+- `[SY_ERR:10] PROVIDER_MODERATION_ERROR: TRADEMARK`: do not retry unchanged. Clearly report the trademark moderation point, return to the storyboard prompt/image approval loop, and explain that changing the prompt may not be enough when the uploaded product image itself contains the mark. Never silently remove a product logo; obtain user approval before a compliant debranded or replacement asset is used.
+- A bare `[SY_ERR:10] PROVIDER_MODERATION_ERROR` has no known subtype. Report it as an unspecified moderation failure and preserve the raw message; never infer `TRADEMARK` unless the provider returned that token.
+- `[SY_ERR:10] Read timed out`, `s3 upload failed`, or `connection reset by peer`: treat as a transient provider media-fetch failure. Do not change the prompt. Preserve the original request and only create a replacement paid task after 用户明确确认.
+- `video_reference ... DURATION_TOO_LONG`: report that the old request is still sending a reference video. The fixed B route must remove `reference_videos`; only a different intentional reference-video workflow would shorten it to 15 seconds or less.
+- Unknown provider failures are never automatically resubmitted. Preserve the raw message in `failure.json` and tell the user what failed.
 - If storyboard approval is unclear, stop and ask for approval instead of assuming.
 - Never print or copy real credentials. The skill reads only `~/.codex/secrets/seedance.env`.

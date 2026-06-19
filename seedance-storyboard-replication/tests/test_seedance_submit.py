@@ -13,8 +13,12 @@ from seedance_submit import (  # noqa: E402
     SeedanceApiError,
     TaskFailedError,
     build_payload,
+    build_failure_report,
+    classify_failure,
     parse_task_id,
     poll_task,
+    request_sha256,
+    require_approved_request,
 )
 
 
@@ -44,19 +48,64 @@ class FakeTransport:
 
 
 class SeedanceSubmitTest(unittest.TestCase):
-    def test_builds_fast_md_reference_payload(self) -> None:
+    def test_request_sha256_is_stable_for_equivalent_payloads(self) -> None:
+        first = {
+            "model": "seedance2.0-fast-md",
+            "prompt": "完整提示词",
+            "duration": 10,
+            "images": ["https://cos.example/storyboard.png"],
+        }
+        reordered = {
+            "images": ["https://cos.example/storyboard.png"],
+            "duration": 10,
+            "prompt": "完整提示词",
+            "model": "seedance2.0-fast-md",
+        }
+
+        self.assertEqual(request_sha256(first), request_sha256(reordered))
+
+    def test_requires_matching_approval_for_exact_request(self) -> None:
+        payload = {
+            "model": "seedance2.0-fast-md",
+            "prompt": "用户已经确认的完整提示词",
+            "duration": 10,
+            "ratio": "9:16",
+        }
+        approved = request_sha256(payload)
+
+        require_approved_request(payload, approved)
+
+        changed = dict(payload, prompt="确认后被修改的提示词")
+        with self.assertRaisesRegex(PayloadError, "changed since user approval"):
+            require_approved_request(changed, approved)
+
+    def test_rejects_new_paid_request_without_explicit_approval(self) -> None:
+        with self.assertRaisesRegex(PayloadError, "explicit user approval"):
+            require_approved_request({"prompt": "not approved"}, None)
+
+    def test_builds_fast_md_image_payload(self) -> None:
         payload = build_payload(
             prompt="按故事板生成带口播和真实动作音效的视频，不要背景音乐。",
             duration=15,
             ratio="9:16",
             image_urls=["https://cos.example/storyboard.png", "https://cos.example/product.jpg"],
-            reference_video_urls=["https://cos.example/reference.mp4"],
+            reference_video_urls=[],
         )
 
         self.assertEqual(payload["model"], "seedance2.0-fast-md")
         self.assertNotIn("resolution", payload)
         self.assertNotIn("reference_audios", payload)
-        self.assertEqual(payload["reference_videos"], ["https://cos.example/reference.mp4"])
+        self.assertNotIn("reference_videos", payload)
+
+    def test_rejects_reference_video_urls_for_fixed_b_route(self) -> None:
+        with self.assertRaisesRegex(PayloadError, "reference_videos is disabled"):
+            build_payload(
+                prompt="Use the approved storyboard and complete script.",
+                duration=10,
+                ratio="9:16",
+                image_urls=["https://cos.example/storyboard.png"],
+                reference_video_urls=["https://cos.example/reference.mp4"],
+            )
 
     def test_omits_optional_media_fields_when_empty(self) -> None:
         payload = build_payload(
@@ -82,7 +131,7 @@ class SeedanceSubmitTest(unittest.TestCase):
 
     def test_rejects_non_public_https_urls(self) -> None:
         with self.assertRaisesRegex(PayloadError, "public HTTPS"):
-            build_payload("prompt", 10, "9:16", ["http://x/storyboard.png"], ["https://x/ref.mp4"])
+            build_payload("prompt", 10, "9:16", ["http://x/storyboard.png"], [])
 
     def test_accepts_documented_success_code_variants(self) -> None:
         self.assertEqual(parse_task_id({"code": 0, "data": {"task_id": "a"}}), "a")
@@ -115,6 +164,29 @@ class SeedanceSubmitTest(unittest.TestCase):
             client.create_video({"model": "seedance2.0-fast-md"})
 
         self.assertEqual(len(transport.calls), 1)
+
+    def test_preserves_nested_provider_error_message_for_classification(self) -> None:
+        transport = FakeTransport(
+            [
+                (
+                    400,
+                    {
+                        "error": {
+                            "message": (
+                                "[SY_ERR:10] invalid image_urls[1]: s3 upload failed: "
+                                "read: connection reset by peer"
+                            )
+                        }
+                    },
+                )
+            ]
+        )
+        client = JimmyAiClient("jimmy-secret", request_json=transport, sleep=lambda _: None)
+
+        with self.assertRaisesRegex(SeedanceApiError, "s3 upload failed") as caught:
+            client.create_video({"model": "seedance2.0-fast-md"})
+
+        self.assertEqual(classify_failure(str(caught.exception)).code, "transient_media_fetch")
 
     def test_polls_until_completed_video_url(self) -> None:
         transport = FakeTransport(
@@ -160,6 +232,58 @@ class SeedanceSubmitTest(unittest.TestCase):
 
         with self.assertRaisesRegex(TaskFailedError, "PROVIDER_MODERATION_ERROR"):
             poll_task(client, "task-1", timeout=60, poll_interval=1)
+
+    def test_classifies_trademark_moderation_as_storyboard_revision(self) -> None:
+        diagnosis = classify_failure(
+            "[SY_ERR:10] PROVIDER_MODERATION_ERROR: TRADEMARK [SY_ERR] "
+            "The request failed because the output video may contain sensitive information."
+        )
+
+        self.assertEqual(diagnosis.code, "trademark_moderation")
+        self.assertFalse(diagnosis.retry_allowed)
+        self.assertTrue(diagnosis.requires_user_confirmation)
+        self.assertTrue(diagnosis.prompt_or_image_change_required)
+        self.assertIn("故事板", diagnosis.next_action)
+
+    def test_generic_provider_moderation_does_not_infer_trademark(self) -> None:
+        diagnosis = classify_failure("[SY_ERR:10] PROVIDER_MODERATION_ERROR")
+
+        self.assertEqual(diagnosis.code, "provider_moderation_unspecified")
+        self.assertNotIn("商标", diagnosis.user_message)
+        self.assertTrue(diagnosis.prompt_or_image_change_required)
+        self.assertFalse(diagnosis.retry_allowed)
+
+    def test_classifies_media_fetch_timeout_as_confirmed_same_request_retry(self) -> None:
+        diagnosis = classify_failure(
+            "[SY_ERR:10] Read timed out [SY_ERR:10] upstream returned error "
+            'invalid image_urls[1]: s3 upload failed: read: connection reset by peer'
+        )
+
+        self.assertEqual(diagnosis.code, "transient_media_fetch")
+        self.assertTrue(diagnosis.retry_allowed)
+        self.assertTrue(diagnosis.requires_user_confirmation)
+        self.assertFalse(diagnosis.prompt_or_image_change_required)
+        self.assertIn("原请求", diagnosis.next_action)
+
+    def test_classifies_long_reference_video_as_stale_fixed_b_request(self) -> None:
+        diagnosis = classify_failure(
+            "invalid video_reference[0]: wait for staged video asset failed: "
+            "uploaded media failed: DURATION_TOO_LONG"
+        )
+
+        self.assertEqual(diagnosis.code, "stale_reference_video")
+        self.assertFalse(diagnosis.retry_allowed)
+        self.assertIn("reference_videos", diagnosis.next_action)
+        self.assertIn("15", diagnosis.next_action)
+
+    def test_unknown_provider_failure_is_preserved_without_automatic_retry(self) -> None:
+        raw_error = "[SY_ERR:10] an undocumented provider failure"
+
+        report = build_failure_report(raw_error)
+
+        self.assertEqual(report["raw_error"], raw_error)
+        self.assertEqual(report["code"], "unknown_provider_failure")
+        self.assertFalse(report["retry_allowed"])
 
     def test_poll_timeout_without_sleeping(self) -> None:
         client = JimmyAiClient(

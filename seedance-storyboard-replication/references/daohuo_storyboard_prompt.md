@@ -29,6 +29,7 @@
 | `{{SHOT_CARDS}}` | 按已确认顺序生成的全部 Cut 卡片 |
 | `{{EXACT_LABELS}}` | 卡片与底栏允许出现的全部精确短文字 |
 | `{{AUDIO_NOTE}}` | 口播/环境声方向；默认不添加背景音乐 |
+| `{{TRADEMARK_SAFETY_NOTE}}` | 商标安全策略；默认只保留用户产品图中真实存在的产品标识，禁止从参考视频复制品牌或凭空生成品牌文字 |
 | `{{TASK_NEGATIVES}}` | 当前人物、产品和场景特有的禁止项 |
 
 ## 动态组装步骤
@@ -38,7 +39,8 @@
 3. 每个 Cut 从完整脚本提炼一个关键动作和一个必要约束，生成短标签并汇总为 `{{EXACT_LABELS}}`。
 4. 默认使用简短大写英文标签降低小字变形风险；用户明确要求其他语言时才切换。
 5. 检查人物、产品、场景和光线连续性，删除与本任务无关的通用描述。
-6. 替换全部占位符后再调用 image2。不要把本文件连同未填字段原样提交。
+6. 填写 `{{TRADEMARK_SAFETY_NOTE}}`。若曾触发 `PROVIDER_MODERATION_ERROR: TRADEMARK`，必须先向用户说明：只改提示词可能不足；不得静默删除产品 Logo，需用户同意后才能使用去品牌或替换素材重做故事板。
+7. 替换全部占位符后再调用 image2。不要把本文件连同未填字段原样提交。
 
 ## 固定版式
 
@@ -106,12 +108,16 @@ Visual style:
 {{VISUAL_STYLE}}
 Color palette: {{COLOR_PALETTE}}
 Audio direction: {{AUDIO_NOTE}}
+Trademark safety: {{TRADEMARK_SAFETY_NOTE}}
 
 Exact allowed text:
 {{EXACT_LABELS}}
 
 Identity and product locks:
 Preserve the character identity, face, styling, outfit, body proportion, and hands defined by the character reference. Preserve the exact product category, silhouette, dimensions, color, material, pattern, logo placement, construction, parts, scale, and real use method defined by the product reference. Do not copy people, subtitles, branding, or screen text from the reference video.
+
+Brand rule:
+Do not invent brand names, fake logos, trademark text, branded signage, or packaging claims. Do not copy any branding from the reference video. Preserve only the product mark that is genuinely visible in the user-provided product reference unless the user has explicitly approved a compliant debranded or replacement asset after a moderation failure.
 
 Text constraints:
 Render only the exact allowed text. Use large crisp high-contrast sans-serif type on clean solid caption strips. No paragraphs, no dialogue, no complete script, no tiny filler text. If optional text cannot be rendered accurately, leave the area blank instead of inventing characters.
@@ -126,6 +132,7 @@ garbled text, pseudo-writing, dense paragraphs, subtitles inside scene images, w
 - 所有镜头顺序、时间和动作均来自已确认脚本。
 - 人物、产品和参考视频职责没有混用。
 - `{{EXACT_LABELS}}` 只包含短标签，没有完整分镜脚本或口播。
+- `{{TRADEMARK_SAFETY_NOTE}}` 已填写，且不会复制参考视频品牌或凭空创造品牌。
 - 所有 `{{...}}` 已替换，提示词中没有占位符残留。
 - 故事板图片比例为 16:9，成片目标比例单独写明。
 - 产品 fidelity 优先于视觉新奇，人物一致性优先于姿势变化。
