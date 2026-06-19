@@ -87,6 +87,22 @@ class SkillContractTest(unittest.TestCase):
         self.assertIn("时长和分段计划", text)
         self.assertIn("不得调用 Seedance", text)
 
+    def test_skill_limits_reference_video_to_two_story_driven_boards(self):
+        text = (SKILL_ROOT / "SKILL.md").read_text(encoding="utf-8")
+        for required in (
+            "参考视频最长 30 秒",
+            "15 秒以内最稳定",
+            "18-30 秒",
+            "最多两张故事板",
+            "剧情切点",
+            "禁止为了均衡时长自动选择",
+            "continuity_manifest.json",
+            "segment_01",
+            "segment_02",
+            "当前分段故事板",
+        ):
+            self.assertIn(required, text)
+
     def test_required_references_exist(self):
         for name in (
             "fukeGem.md",
@@ -139,6 +155,13 @@ class SkillContractTest(unittest.TestCase):
             "{{SHOT_CARDS}}",
             "{{EXACT_LABELS}}",
             "{{TRADEMARK_SAFETY_NOTE}}",
+            "{{SEGMENT_INDEX}}",
+            "{{SEGMENT_DURATION}}",
+            "{{GLOBAL_CUT_RANGE}}",
+            "{{INCOMING_CONTINUITY}}",
+            "{{OUTGOING_CONTINUITY}}",
+            "{{ADJACENT_BOARD_ROLE}}",
+            "{{CONTINUITY_MANIFEST}}",
             "不得保留未替换占位符",
         ):
             self.assertIn(required, prompt_text)

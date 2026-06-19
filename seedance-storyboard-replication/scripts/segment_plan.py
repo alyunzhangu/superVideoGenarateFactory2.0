@@ -2,9 +2,7 @@ from __future__ import annotations
 
 import argparse
 from dataclasses import dataclass
-import itertools
 import json
-import math
 from pathlib import Path
 from typing import Sequence
 
@@ -39,11 +37,13 @@ class SegmentPlan:
     total_source_duration: float
     retime_scale: float
     segments: tuple[Segment, ...]
+    selected_split_boundary: float | None = None
 
     def to_dict(self) -> dict:
         return {
             "total_source_duration": self.total_source_duration,
             "retime_scale": self.retime_scale,
+            "selected_split_boundary": self.selected_split_boundary,
             "segments": [segment.to_dict() for segment in self.segments],
         }
 
@@ -66,35 +66,50 @@ def _one_segment(boundaries: list[float], output_duration: float, retime_scale: 
     )
 
 
-def plan_segments(boundaries: Sequence[float]) -> SegmentPlan:
+def plan_segments(
+    boundaries: Sequence[float],
+    split_boundary: float | None = None,
+) -> SegmentPlan:
     normalized = _normalize_boundaries(boundaries)
     total = normalized[-1] - normalized[0]
+    if total > 30:
+        raise PlanningError("Reference video duration must be at most 30 seconds")
     if total <= 15:
         return _one_segment(normalized, total, 1.0)
     if total <= 17:
         return _one_segment(normalized, 15, 15 / total)
 
-    segment_count = math.ceil(total / 15)
-    target = total / segment_count
-    candidates: list[tuple[float, list[float], list[float]]] = []
-    inner_boundaries = normalized[1:-1]
-    for chosen in itertools.combinations(inner_boundaries, segment_count - 1):
-        points = [normalized[0], *chosen, normalized[-1]]
-        durations = [right - left for left, right in zip(points, points[1:])]
-        if all(5 <= duration <= 15 for duration in durations):
-            score = sum((duration - target) ** 2 for duration in durations)
-            candidates.append((score, points, durations))
-
-    if not candidates:
+    if split_boundary is None:
         raise PlanningError(
-            "No 5-15 second partition exists at the approved boundaries; "
-            "split the Cut at an internal action beat."
+            "A story-selected split_boundary is required above 17 seconds; "
+            "do not choose a boundary from duration balance alone"
         )
-
-    _, points, durations = min(candidates, key=lambda item: item[0])
+    selected = next(
+        (
+            boundary
+            for boundary in normalized[1:-1]
+            if abs(boundary - float(split_boundary)) <= 1e-6
+        ),
+        None,
+    )
+    if selected is None:
+        raise PlanningError(
+            "split_boundary must be an approved Cut boundary; revise the Cut at a "
+            "natural internal action beat and ask the user to approve it"
+        )
+    points = [normalized[0], selected, normalized[-1]]
+    durations = [right - left for left, right in zip(points, points[1:])]
+    if not all(5 <= duration <= 15 for duration in durations):
+        legal_start = max(normalized[0] + 5, normalized[-1] - 15)
+        legal_end = min(normalized[0] + 15, normalized[-1] - 5)
+        raise PlanningError(
+            "story-selected split_boundary creates a segment outside 5-15 seconds; "
+            f"choose an approved narrative boundary from {legal_start:g} to {legal_end:g} seconds"
+        )
     return SegmentPlan(
         total_source_duration=total,
         retime_scale=1.0,
+        selected_split_boundary=selected,
         segments=tuple(
             Segment(left, right, duration)
             for left, right, duration in zip(points, points[1:], durations)
@@ -122,9 +137,13 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Plan 1-15 second Seedance segments from Cut boundaries.")
     parser.add_argument("--cuts-json", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--split-boundary", type=float)
     args = parser.parse_args()
 
-    plan = plan_segments(_load_boundaries(args.cuts_json))
+    plan = plan_segments(
+        _load_boundaries(args.cuts_json),
+        split_boundary=args.split_boundary,
+    )
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(plan.to_dict(), ensure_ascii=False, indent=2), encoding="utf-8")
     return 0

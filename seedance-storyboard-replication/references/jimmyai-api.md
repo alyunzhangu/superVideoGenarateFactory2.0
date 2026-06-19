@@ -19,7 +19,7 @@ Use this contract for the bundled `scripts/seedance_submit.py` client.
 
 ## Approval Before Create
 
-Run `seedance_submit.py --dry-run` first and expose the complete prompt, image mapping, duration, ratio, segmentation, `request.redacted.json`, and `approval_preview.json` to the user. A new paid create requires `--approved-request-sha256` matching that exact preview. Any prompt or payload change invalidates the prior approval. `--resume-task-id` only polls an existing task and does not create a duplicate paid request.
+Run `seedance_submit.py --dry-run` first and expose the complete prompt, image mapping, duration, ratio, segmentation, `request.redacted.json`, and `approval_preview.json` to the user. In a two-segment run, each task uses its own segment storyboard as `@图片1` and receives its own preview digest. A new paid create requires `--approved-request-sha256` matching that exact preview. Any prompt or payload change invalidates the prior approval. `--resume-task-id` only polls an existing task and does not create a duplicate paid request.
 
 ## Provider Failure Classification
 

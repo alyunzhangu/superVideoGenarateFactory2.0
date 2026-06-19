@@ -18,6 +18,9 @@
 |---|---|
 | `{{VIDEO_TITLE}}` | 产品或视频主题的短标题 |
 | `{{DURATION}}` | 视频总时长 |
+| `{{SEGMENT_INDEX}}` | 当前故事板编号，例如 `1/2`；单段时写 `1/1` |
+| `{{SEGMENT_DURATION}}` | 当前分段时长，必须为 1-15 秒 |
+| `{{GLOBAL_CUT_RANGE}}` | 当前分段包含的全局 Cut 范围，例如 `Cut 1-4` |
 | `{{SHOT_COUNT}}` | 已确认的 Cut 数量 |
 | `{{TARGET_VIDEO_RATIO}}` | 成片比例，默认 9:16 |
 | `{{CHARACTER_REFERENCE_ROLE}}` | 人物参考图编号、身份、脸、发型/头巾、服装和体型锁定项；无人设图时写明手部或纯产品策略 |
@@ -26,6 +29,10 @@
 | `{{VISUAL_STYLE}}` | 实拍风格、光线、质感和摄影语言 |
 | `{{COLOR_PALETTE}}` | 主色板 |
 | `{{ENVIRONMENT_PLAN}}` | 主要室内/户外环境、连续性和动线 |
+| `{{CONTINUITY_MANIFEST}}` | 整套故事板共用的连续性清单，锁人物、产品、场景、光线、屏幕方向和边界交接状态 |
+| `{{INCOMING_CONTINUITY}}` | 当前分段开头承接上一段的状态；第一段写明起始状态 |
+| `{{OUTGOING_CONTINUITY}}` | 当前分段结尾交给下一段的状态；最后一段写明结束状态 |
+| `{{ADJACENT_BOARD_ROLE}}` | 相邻分段故事板的作用；无相邻分段时写 `none` |
 | `{{SHOT_CARDS}}` | 按已确认顺序生成的全部 Cut 卡片 |
 | `{{EXACT_LABELS}}` | 卡片与底栏允许出现的全部精确短文字 |
 | `{{AUDIO_NOTE}}` | 口播/环境声方向；默认不添加背景音乐 |
@@ -35,12 +42,13 @@
 ## 动态组装步骤
 
 1. 明确每份输入素材的唯一职责。人物图只锁身份与造型，产品图只锁产品，参考视频只锁节奏、运镜、构图和场景推进。
-2. 将已确认分镜逐 Cut 转成 `{{SHOT_CARDS}}`，镜头数量必须等于 `{{SHOT_COUNT}}`。
+2. 只把当前分段的已确认分镜逐 Cut 转成 `{{SHOT_CARDS}}`，镜头数量必须等于 `{{SHOT_COUNT}}`。保留全局 Cut 编号和分段内时间码。
 3. 每个 Cut 从完整脚本提炼一个关键动作和一个必要约束，生成短标签并汇总为 `{{EXACT_LABELS}}`。
 4. 默认使用简短大写英文标签降低小字变形风险；用户明确要求其他语言时才切换。
-5. 检查人物、产品、场景和光线连续性，删除与本任务无关的通用描述。
-6. 填写 `{{TRADEMARK_SAFETY_NOTE}}`。若曾触发 `PROVIDER_MODERATION_ERROR: TRADEMARK`，必须先向用户说明：只改提示词可能不足；不得静默删除产品 Logo，需用户同意后才能使用去品牌或替换素材重做故事板。
-7. 替换全部占位符后再调用 image2。不要把本文件连同未填字段原样提交。
+5. 填写 `{{CONTINUITY_MANIFEST}}`、`{{INCOMING_CONTINUITY}}`、`{{OUTGOING_CONTINUITY}}` 和 `{{ADJACENT_BOARD_ROLE}}`。第二段必须参考第一段故事板和原始人物/产品图，不得重新发明人物、产品或场景。
+6. 检查人物、产品、场景和光线连续性，删除与本任务无关的通用描述。
+7. 填写 `{{TRADEMARK_SAFETY_NOTE}}`。若曾触发 `PROVIDER_MODERATION_ERROR: TRADEMARK`，必须先向用户说明：只改提示词可能不足；不得静默删除产品 Logo，需用户同意后才能使用去品牌或替换素材重做故事板。
+8. 替换全部占位符后再调用 image2。不要把本文件连同未填字段原样提交。
 
 ## 固定版式
 
@@ -81,7 +89,7 @@ Cut {{CUT_NUMBER}}
 
 ```text
 Use case: infographic-diagram
-Asset type: 16:9 cinematic pre-production storyboard / visual planning board for a {{DURATION}} vertical ecommerce UGC video.
+Asset type: 16:9 cinematic pre-production storyboard / visual planning board for Segment {{SEGMENT_INDEX}} of a {{DURATION}} vertical ecommerce UGC video. Current segment duration: {{SEGMENT_DURATION}}.
 
 Input roles:
 - Character reference: {{CHARACTER_REFERENCE_ROLE}}
@@ -89,10 +97,10 @@ Input roles:
 - Reference video or contact sheet: {{REFERENCE_VIDEO_ROLE}}
 
 Primary request:
-Create one polished landscape 16:9 director's production board for a {{TARGET_VIDEO_RATIO}} ecommerce video titled "{{VIDEO_TITLE}}". Use a professional modular grid, clear hierarchy, generous spacing, and realistic commercial pre-production design. This must feel like a director's visual guide, not a plain nine-grid.
+Create one polished landscape 16:9 director's production board for Segment {{SEGMENT_INDEX}} of a {{TARGET_VIDEO_RATIO}} ecommerce video titled "{{VIDEO_TITLE}}". This board covers {{GLOBAL_CUT_RANGE}} only. Use a professional modular grid, clear hierarchy, generous spacing, and realistic commercial pre-production design. This must feel like a director's visual guide, not a plain nine-grid.
 
 Fixed layout:
-- Top: shared creative direction with title, {{SHOT_COUNT}} shots, target ratio, palette, environment, and camera style.
+- Top: shared creative direction with title, Segment {{SEGMENT_INDEX}}, {{GLOBAL_CUT_RANGE}}, {{SHOT_COUNT}} shots, target ratio, palette, environment, and camera style.
 - Left: CHARACTER section with character/style reference, multiple angles, face/eye, hand, clothing or accessory details.
 - Center: STORYBOARD section containing exactly {{SHOT_COUNT}} ordered Cut cards.
 - Right: PRODUCT section with front view, texture/logo macro, structural detail, interior/use detail, and a simple top-down camera movement diagram.
@@ -100,6 +108,14 @@ Fixed layout:
 
 Environment and movement:
 {{ENVIRONMENT_PLAN}}
+
+Shared continuity manifest:
+{{CONTINUITY_MANIFEST}}
+
+Segment continuity:
+- Incoming state: {{INCOMING_CONTINUITY}}
+- Outgoing state: {{OUTGOING_CONTINUITY}}
+- Adjacent board role: {{ADJACENT_BOARD_ROLE}}
 
 Storyboard cards:
 {{SHOT_CARDS}}
@@ -115,6 +131,7 @@ Exact allowed text:
 
 Identity and product locks:
 Preserve the character identity, face, styling, outfit, body proportion, and hands defined by the character reference. Preserve the exact product category, silhouette, dimensions, color, material, pattern, logo placement, construction, parts, scale, and real use method defined by the product reference. Do not copy people, subtitles, branding, or screen text from the reference video.
+Maintain the continuity manifest exactly across segment boards: same character state, product state, environment direction, lighting, screen direction, prop positions, and action handoff. Segment boards are independent images for separate Seedance tasks, but they must read as one continuous story.
 
 Brand rule:
 Do not invent brand names, fake logos, trademark text, branded signage, or packaging claims. Do not copy any branding from the reference video. Preserve only the product mark that is genuinely visible in the user-provided product reference unless the user has explicitly approved a compliant debranded or replacement asset after a moderation failure.
@@ -129,6 +146,8 @@ garbled text, pseudo-writing, dense paragraphs, subtitles inside scene images, w
 ## 提交前检查
 
 - `{{SHOT_CARDS}}` 中 Cut 数量与已确认脚本一致。
+- `{{SEGMENT_INDEX}}`、`{{SEGMENT_DURATION}}` 和 `{{GLOBAL_CUT_RANGE}}` 已填写，且只覆盖当前分段。
+- `{{CONTINUITY_MANIFEST}}`、`{{INCOMING_CONTINUITY}}`、`{{OUTGOING_CONTINUITY}}` 和 `{{ADJACENT_BOARD_ROLE}}` 已填写。
 - 所有镜头顺序、时间和动作均来自已确认脚本。
 - 人物、产品和参考视频职责没有混用。
 - `{{EXACT_LABELS}}` 只包含短标签，没有完整分镜脚本或口播。

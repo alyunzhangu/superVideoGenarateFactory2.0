@@ -4,20 +4,20 @@ Build the final `seedance2.0-fast-md` prompt in this order.
 
 ## Source Of Truth
 
-The approved 完整分镜脚本 is the execution source of truth. The reference video is used upstream only to reverse-engineer motion, pacing, transitions, and shooting style and to generate the approved storyboard. The storyboard supplies visual composition, identity, product, and scene reference to Seedance.
+The approved 完整分镜脚本 is the execution source of truth. The reference video is used upstream only to reverse-engineer motion, pacing, transitions, and shooting style and to generate the approved segment storyboards. The current segment storyboard supplies visual composition, identity, product, and scene reference to Seedance.
 
 The storyboard image is a visual reference; do not rely on text rendered inside the storyboard image. 不要依赖故事板图片中的文字，也不要要求 Seedance 自行识别图片里的完整脚本、口播或备注。Repeat the complete approved script as prompt text.
 
 Use the fixed B route for both workflow routes: keep the original video local after analysis, do not upload it for Seedance, and 禁止发送 `reference_videos`.
 
 1. Actual image-number mapping:
-   - `@图片1` is the approved storyboard overview.
+   - `@图片1` is 当前分段故事板 only, such as `storyboards/segment_01_v1.png` for task 1 or `storyboards/segment_02_v1.png` for task 2.
    - `@图片2` is the optional character board.
    - `@图片3` is product board 1.
    - `@图片4` is optional product board 2.
-2. State that timing, motion, transition, and camera instructions come from the complete approved script and `@图片1`; no reference video is available to Seedance.
+2. State the global segment plan, selected narrative split, current segment index, source time range, segment-local duration, incoming continuity state, outgoing continuity state, and adjacent segment handoff. No reference video is available to Seedance.
 3. Global product and character identity locks. Keep product shape, color, logo, packaging, material, scale, and use method consistent. Keep face, hairstyle, outfit, body proportion, and temperament consistent when a character board exists.
-4. 完整分镜脚本, repeated Cut by Cut. Every Cut must include all of these fields:
+4. 当前分段的完整分镜脚本, repeated Cut by Cut. Keep global Cut numbers and segment-local timecodes. Every Cut must include all of these fields:
    - `时间`: segment-local `00.0-02.5s` style timecode.
    - `脚本描述`: the complete visible scene, subject, action progression, and intended result.
    - `镜头`: shot size, angle, lens feeling, camera movement, and transition.
@@ -25,8 +25,9 @@ Use the fixed B route for both workflow routes: keep the original video local af
    - `口播内容`: exact spoken line, or explicitly `无口播`.
    - `备注`: environment/action sound, lighting, mood, speed, continuity, and Cut-local negative constraints.
 5. Voiceover plus environment/action sound; no background music by default.
-6. Global negative constraints: no subtitles, no screen text, no invented shots, no reordered Cuts, no product deformation, no identity drift.
-7. Keep the whole prompt under 5000 characters with no unresolved image-number placeholders and no generic time placeholders. Compress repeated global wording before shortening any Cut's script facts. If the approved script cannot fit without losing facts, split on approved Cut boundaries instead of omitting them.
+6. Boundary continuity constraints. For segment 1, end in the exact outgoing state needed by segment 2. For segment 2, start from the exact incoming state produced by segment 1. Separate generations may not perfectly match frames, so the prompt must lock pose, product position, environment direction, screen direction, lighting, and audio handoff in text.
+7. Global negative constraints: no subtitles, no screen text, no invented shots, no reordered Cuts, no product deformation, no identity drift.
+8. Keep the whole prompt under 5000 characters with no unresolved image-number placeholders and no generic time placeholders. Compress repeated global wording before shortening any Cut's script facts. If the approved segment prompt cannot fit without losing facts, ask the user to simplify the segment instead of omitting them.
 
 Never use vague substitutions such as “follow the storyboard,” “same as the reference,” or “continue similarly” in place of the Cut fields above.
 
@@ -34,7 +35,9 @@ After assembling the complete prompt, expose it together with the final image ma
 
 ## Four-Cut Example
 
-Use `@图片1` as the storyboard visual reference, `@图片2` as the character board, and `@图片3` as the product board. Do not read instructions from text inside `@图片1`. Follow the full Cut text for timing, motion, and transitions. Keep the exact person identity from `@图片2`. Keep the exact product appearance from `@图片3`: same color, shape, material, logo placement, packaging details, and real use method. Do not redraw or redesign the product. No reference video is sent to Seedance.
+Use `@图片1` as the current segment storyboard visual reference, `@图片2` as the character board, and `@图片3` as the product board. Do not read instructions from text inside `@图片1`. Follow the full Cut text for timing, motion, and transitions. Keep the exact person identity from `@图片2`. Keep the exact product appearance from `@图片3`: same color, shape, material, logo placement, packaging details, and real use method. Do not redraw or redesign the product. No reference video is sent to Seedance.
+
+Segment context: Segment 1/2, global source `00.0-14.0s`, local duration `14.0s`. Incoming state: opening state, product off-screen in the user's right hand. Outgoing state: product held upright at chest height, front logo facing camera, character looking toward product, soft window light from camera left. Segment 2 must start from that outgoing state.
 
 Create a vertical 9:16 natural ecommerce experience video, realistic phone-shot style, soft indoor daylight, handheld but stable. No subtitles and no screen text.
 
