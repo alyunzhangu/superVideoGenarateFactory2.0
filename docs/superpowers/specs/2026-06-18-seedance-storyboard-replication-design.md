@@ -13,6 +13,7 @@ The skill must support two user routes, use Codex `image2` for storyboard genera
 - Do not upload reference audio to the MD API.
 - Do not use AI to redraw or reinterpret product reference boards.
 - Do not bypass the user approval gates for scripts or storyboards.
+- Do not submit a newly assembled or modified Seedance request until the user has approved its exact prompt and request preview.
 
 ## Skill Layout
 
@@ -90,13 +91,14 @@ After the required approvals:
 2. Plan one or more Seedance segments.
 3. Generate one concrete Seedance prompt per segment. Prompts request voiceover, environment sound, and action sound by default, but do not request background music unless the user asks for it.
 4. Validate the image reference allocation.
-5. Upload the reference video, approved storyboard, optional character board, and product boards to Tencent COS.
-6. Build a redacted request preview and report the task count and planned segment durations.
-7. Submit `seedance2.0-fast-md` tasks after the user has requested generation and approved the storyboard.
-8. Poll each task through `queued` and `processing` until `completed` or `failed`.
-9. Download every completed result immediately because JimmyAI result URLs expire after about three days.
-10. Concatenate multiple segments with FFmpeg, preserving their audio tracks.
-11. Run final media checks and retain all diagnostic artifacts required for retry or resumption.
+5. Upload the approved storyboard, optional character board, and product boards to Tencent COS. Keep the original reference video local; it is never sent to Seedance.
+6. Build a redacted request preview and report the exact prompt, image mapping, task count, ratio, and planned segment durations.
+7. Stop at the **确认 Seedance 提示词** gate. The preview receives a SHA-256 digest; any prompt, image mapping, duration, ratio, or segmentation change invalidates the approval.
+8. Submit `seedance2.0-fast-md` tasks only after the user explicitly approves that exact preview. Resume polling an existing task without a new approval because resumption does not create a new paid task.
+9. Poll each task through `queued` and `processing` until `completed` or `failed`.
+10. Download every completed result immediately because JimmyAI result URLs expire after about three days.
+11. Concatenate multiple segments with FFmpeg, preserving their audio tracks.
+12. Run final media checks and retain all diagnostic artifacts required for retry or resumption.
 
 ## Duration and Segmentation Rules
 
@@ -131,7 +133,7 @@ Create payload rules:
 - `duration`: required and between 1 and 15 seconds.
 - `ratio`: `9:16` by default.
 - `images`: public HTTPS URLs, at most four.
-- `reference_videos`: include the public COS URL of the original reference video.
+- `reference_videos`: never include this field. Both routes use the fixed B workflow after real QC showed that passing the source video can override the target character identity.
 - Do not include `reference_audios`; MD does not accept uploaded reference audio.
 - Do not send `resolution`; MD output is fixed at 720p.
 - Do not combine `images` with `first_image` or `last_image`.
@@ -149,7 +151,7 @@ The normal four-image allocation is:
 3. Product reference board 1.
 4. Optional product reference board 2.
 
-The reference video is sent through `reference_videos` and does not consume an image slot.
+The reference video is used only for upstream reverse engineering and storyboard generation. It is not uploaded to COS for Seedance and is not sent through `reference_videos`.
 
 Before API submission, clearly tell the user that JimmyAI MD accepts no more than four reference images. When product reference material exceeds the available slots, stop and ask the user to prepare one or two product boards. Product boards must preserve original pixels and may only arrange, resize, label outside the product area, or add neutral spacing; they must not redraw the product.
 
@@ -202,6 +204,8 @@ outputs/<run-name>/
 ├── seedance_prompt.md
 ├── segment_plan.json
 ├── request.redacted.json
+├── approval_preview.json
+├── failure.json
 ├── segments/
 │   ├── 01/
 │   └── 02/
@@ -219,6 +223,10 @@ Route 1 stores the user-supplied approved script. Route 2 stores every approved 
 - Save every task ID and latest status so polling can resume without creating a duplicate paid task.
 - On timeout, preserve task state and print the exact resume command.
 - On task failure, preserve the provider error and all successful sibling segments.
+- Classify `PROVIDER_MODERATION_ERROR: TRADEMARK` as a non-retryable trademark moderation failure. Explain that the storyboard prompt and/or image assets require review, return to storyboard generation and approval, and never imply that prompt wording can bypass provider moderation. Do not silently remove a user product logo; request approval before using a compliant debranded or replacement asset.
+- Classify `Read timed out`, media `s3 upload failed`, and `connection reset by peer` as transient provider media-fetch failures. Keep the exact request unchanged and wait for explicit user confirmation before creating a replacement paid task.
+- Classify `video_reference ... DURATION_TOO_LONG` as an outdated fixed-B request. Report the offending reference-video field and rebuild without `reference_videos`; if a different future workflow intentionally sends a reference video, it must be at most 15 seconds.
+- Unknown provider failures are not automatically retried. Preserve the raw message and ask the user before any new paid submission.
 - Do not concatenate if any required segment is missing or failed.
 - Download completed results immediately and report download failures separately from generation failures.
 
@@ -242,10 +250,12 @@ Automated tests cover:
 
 - Duration planning at 15, 17, 18, 20, and 29 seconds.
 - Natural Cut boundary selection and the five-second minimum.
-- Image count validation and `reference_videos` payload construction.
+- Image count validation and rejection of any attempted `reference_videos` payload.
 - Rejection of `reference_audios`, `resolution`, and incompatible frame/image modes.
 - COS object-key normalization, URL encoding, and public URL construction.
 - JimmyAI response parsing, polling, retry, timeout, failure, and download behavior.
+- Exact-request SHA-256 approval enforcement and approval invalidation after any request change.
+- Trademark moderation, transient media-fetch timeout, and stale reference-video duration failure classification.
 - Request redaction.
 - FFmpeg concatenation with video and audio streams.
 - Skill route selection and the route-specific approval gates.
