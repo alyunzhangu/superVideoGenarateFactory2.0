@@ -50,10 +50,11 @@ Inputs:
 Flow:
 
 1. Treat the supplied storyboard script as final. Do not ask the user to approve it again.
-2. Apply `daohuo_storyboard_prompt.md` and call Codex `image2` to generate the storyboard image.
-3. Show the storyboard to the user and stop.
-4. Revise the storyboard from the user's feedback until the user explicitly approves it.
-5. Continue through the shared Seedance generation flow.
+2. Plan the Seedance segments from the confirmed Cut boundaries.
+3. Apply `daohuo_storyboard_prompt.md` and call Codex `image2` once per planned segment to generate the continuous storyboard set.
+4. Show all segment boards and the continuity map to the user and stop.
+5. Revise affected boards from the user's feedback until the user approves every board and cross-segment boundary.
+6. Continue through the shared Seedance generation flow.
 
 ### Route 2: Reference Video Only
 
@@ -68,20 +69,24 @@ Flow:
 1. Inspect the reference video and apply `fukeGem.md` to reverse-engineer its visual style, language, timing, shots, actions, camera movement, and spoken-copy intent.
 2. Show the Chinese storyboard script to the user and stop.
 3. Revise the script until the user explicitly approves it.
-4. Apply `daohuo_storyboard_prompt.md` and call Codex `image2` to generate the storyboard image.
-5. Show the storyboard to the user and stop again.
-6. Revise the storyboard until the user explicitly approves it.
-7. Continue through the shared Seedance generation flow.
+4. Plan the Seedance segments from the approved Cut boundaries.
+5. Apply `daohuo_storyboard_prompt.md` and call Codex `image2` once per planned segment to generate the continuous storyboard set.
+6. Show all segment boards and the continuity map to the user and stop again.
+7. Revise affected boards until the user approves every board and cross-segment boundary.
+8. Continue through the shared Seedance generation flow.
 
 ## Storyboard Generation and Revision
 
-- Generate one complete storyboard overview image on the first pass with Codex `image2`.
+- Run duration planning before storyboard generation. A script with one Seedance segment gets one storyboard board; a script with multiple Seedance segments gets exactly one `16:9` storyboard board per segment and no additional master board.
+- Treat all segment boards as one continuous storyboard set. Preserve global Cut numbering while also showing segment-local timecodes.
+- Build a continuity manifest before calling `image2`. It locks character identity and wardrobe, product appearance and scale, environment and light direction, camera language, screen direction, and every segment boundary's outgoing action, incoming action, prop position, body pose, and audio handoff.
+- Generate each segment board from the same approved script, character/product references, and continuity manifest. Segment 2 and later must also use the preceding segment board as continuity reference; they may not independently reinterpret the story.
 - Keep Cut order, character identity, product identity, scene continuity, action order, camera logic, and visual style locked to the approved script and references.
-- Store each user-visible revision as `storyboard_v1.png`, `storyboard_v2.png`, and so on.
-- For broad feedback, regenerate the complete storyboard with `image2`.
-- For feedback limited to a small number of Cuts, regenerate only those Cuts with `image2`, using the approved references and current storyboard for continuity, then deterministically rebuild the overview image.
+- Store each user-visible revision as `storyboards/segment_01_v1.png`, `storyboards/segment_02_v1.png`, and so on.
+- For broad feedback, regenerate the complete storyboard set with `image2`.
+- For feedback limited to one segment, regenerate only that segment board with `image2`, using the approved references and adjacent board for continuity. Recheck and reapprove both sides of any changed segment boundary.
 - Never use AI to create a product board. A product board must be a layout of unchanged user product images.
-- Do not continue to Seedance until the user explicitly approves the current storyboard.
+- Present every segment board together with the segment map. Do not continue to Seedance until the user explicitly approves every board and the set-wide continuity.
 
 ## Shared Generation Flow
 
@@ -89,22 +94,24 @@ After the required approvals:
 
 1. Normalize the approved script into structured Cut data with global timecodes, shot descriptions, voiceover, environment sound, and action sound.
 2. Plan one or more Seedance segments.
-3. Generate one concrete Seedance prompt per segment. Prompts request voiceover, environment sound, and action sound by default, but do not request background music unless the user asks for it.
-4. Validate the image reference allocation.
-5. Upload the approved storyboard, optional character board, and product boards to Tencent COS. Keep the original reference video local; it is never sent to Seedance.
-6. Build a redacted request preview and report the exact prompt, image mapping, task count, ratio, and planned segment durations.
-7. Stop at the **确认 Seedance 提示词** gate. The preview receives a SHA-256 digest; any prompt, image mapping, duration, ratio, or segmentation change invalidates the approval.
-8. Submit `seedance2.0-fast-md` tasks only after the user explicitly approves that exact preview. Resume polling an existing task without a new approval because resumption does not create a new paid task.
-9. Poll each task through `queued` and `processing` until `completed` or `failed`.
-10. Download every completed result immediately because JimmyAI result URLs expire after about three days.
-11. Concatenate multiple segments with FFmpeg, preserving their audio tracks.
-12. Run final media checks and retain all diagnostic artifacts required for retry or resumption.
+3. Generate one storyboard board per planned segment from a shared continuity manifest, then stop until every board and all cross-segment boundaries are approved.
+4. Generate one concrete Seedance prompt per segment. Each prompt contains only that segment's Cuts, plus explicit incoming/outgoing continuity anchors. Prompts request voiceover, environment sound, and action sound by default, but do not request background music unless the user asks for it.
+5. Validate image allocation separately for every segment.
+6. Upload each approved segment storyboard, optional character board, and product boards to Tencent COS. Keep the original reference video local; it is never sent to Seedance.
+7. Build redacted request previews and report every exact prompt, segment-specific image mapping, task count, ratio, and planned segment duration.
+8. Stop at the **确认 Seedance 提示词** gate. Each segment preview receives its own SHA-256 digest; any prompt, board, image mapping, duration, ratio, or segmentation change invalidates the affected approval.
+9. Submit `seedance2.0-fast-md` tasks only after the user explicitly approves the complete set of exact previews. Resume polling an existing task without a new approval because resumption does not create a new paid task.
+10. Poll each task through `queued` and `processing` until `completed` or `failed`.
+11. Download every completed result immediately because JimmyAI result URLs expire after about three days.
+12. Concatenate multiple segments with FFmpeg at the approved natural Cut boundary, preserving their audio tracks. Do not add a crossfade by default.
+13. Run final media checks and retain all diagnostic artifacts required for retry or resumption.
 
 ## Duration and Segmentation Rules
 
 - For a total duration up to 15 seconds, preserve the requested duration and submit one task.
 - For a total duration greater than 15 and no greater than 17 seconds, retime all Cuts proportionally into one 15-second task.
 - For a total duration greater than 17 seconds, partition contiguous Cuts into segments between 5 and 15 seconds.
+- A 20-second script normally becomes two balanced segments near 10 seconds each; `15 + 5` is allowed only when approved Cut boundaries make it the natural split.
 - Prefer existing Cut boundaries and keep complete actions and voiceover sentences together.
 - Choose the minimum number of segments that satisfies the 15-second maximum, then prefer balanced segment durations near `total_duration / segment_count`.
 - If a single Cut exceeds 15 seconds, split it at an internal action or camera beat.
@@ -146,10 +153,12 @@ Accept the documented success response variants defensively, extract `data.task_
 
 The normal four-image allocation is:
 
-1. Approved storyboard overview image.
+1. The approved storyboard board for the current segment only.
 2. Optional character reference board.
 3. Product reference board 1.
 4. Optional product reference board 2.
+
+Never send a whole-video storyboard to every task in a multi-segment run. Segment 1 receives segment board 1, segment 2 receives segment board 2, and so on. Shared character and product boards may be reused across tasks.
 
 The reference video is used only for upstream reverse engineering and storyboard generation. It is not uploaded to COS for Seedance and is not sent through `reference_videos`.
 
@@ -199,16 +208,22 @@ Each run uses a dedicated output directory:
 outputs/<run-name>/
 ├── script.md
 ├── script.json
-├── storyboard_v1.png
-├── storyboard_v2.png
-├── seedance_prompt.md
+├── continuity_manifest.json
+├── storyboards/
+│   ├── segment_01_v1.png
+│   └── segment_02_v1.png
 ├── segment_plan.json
-├── request.redacted.json
-├── approval_preview.json
-├── failure.json
 ├── segments/
 │   ├── 01/
+│   │   ├── seedance_prompt.md
+│   │   ├── request.redacted.json
+│   │   ├── approval_preview.json
+│   │   └── failure.json
 │   └── 02/
+│       ├── seedance_prompt.md
+│       ├── request.redacted.json
+│       ├── approval_preview.json
+│       └── failure.json
 └── final.mp4
 ```
 
