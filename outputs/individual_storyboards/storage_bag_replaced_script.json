@@ -1,0 +1,56 @@
+{
+  "image_generation_model": "Nano Banana 2",
+  "generation_mode": "individual_high_res_images",
+  "output_resolution": "768x1366",
+  "output_orientation": "portrait",
+  "global_style": "bright warm home lighting, mixed natural and overhead light, UGC mobile photography style, visible living traces, slight messy aesthetic",
+  "reference_roles": {
+    "product_reference": "/Users/jiangyongjian/Downloads/ChatGPT Image 2026年6月19日 21_55_31.png",
+    "malay_mother_reference": "/Users/jiangyongjian/Downloads/character.png",
+    "demonstrator_reference": "/Users/jiangyongjian/Downloads/ChatGPT Image 2026年6月2日 21_44_17.png",
+    "reference_video": "/Users/jiangyongjian/Downloads/p.mp4"
+  },
+  "replacement_rules": {
+    "mother_holding_child": "replace the blonde woman holding a baby with the Malay hijab woman from character.png, while keeping the baby and wardrobe-opening role",
+    "falling_subject": "replace the black man in maid outfit with the second character reference: brown-haired woman in beige T-shirt, black jeans, white sneakers",
+    "product": "replace the transparent storage box with the gray-white striped soft fabric storage bag, dark gray piping, double top zipper, and two gray handles"
+  },
+  "global_negative": "no timecode, no subtitles, no grids, no multiple panels, no text overlay, no watermark, no transparent box, no rigid wire-frame box, no black man, no maid outfit, no blonde mother, no identity drift, no extra babies, no extra hands, no missing zipper, no missing handles",
+  "shots": [
+    {
+      "shot_number": "分镜1",
+      "prompt_text": "Medium shot, fixed camera, Malay hijab woman holding one baby, right hand pulling black metal handle of white wardrobe, bright warm home lighting, UGC mobile style, vertical format, 9:16 aspect ratio, portrait orientation, no timecode, no subtitles, no grids, no multiple panels.",
+      "voiceover": "Opening the wardrobe door."
+    },
+    {
+      "shot_number": "分镜2",
+      "prompt_text": "Medium shot, fixed camera, massive dark clothes falling from wardrobe, Malay hijab woman holding baby leans backward with surprised face, bright warm home lighting, UGC mobile style, vertical format, 9:16 aspect ratio, portrait orientation, no timecode, no subtitles, no grids, no multiple panels.",
+      "voiceover": "Clothes dislodging and falling."
+    },
+    {
+      "shot_number": "分镜3",
+      "prompt_text": "Full shot, slight camera shake, brown-haired woman from second reference wearing beige T-shirt and black jeans falling backward onto clothes pile, legs raised, bright warm home lighting, UGC mobile style, vertical format, 9:16 aspect ratio, portrait orientation, no timecode, no subtitles, no grids, no multiple panels.",
+      "voiceover": "Subject falling onto the clothing pile."
+    },
+    {
+      "shot_number": "分镜4",
+      "prompt_text": "Medium close-up, downward tilt, same brown-haired woman in beige T-shirt and black jeans sitting up among clothes, palms facing outward, bright warm home lighting, UGC mobile style, vertical format, 9:16 aspect ratio, portrait orientation, no timecode, no subtitles, no grids, no multiple panels.",
+      "voiceover": "Subject sitting upright."
+    },
+    {
+      "shot_number": "分镜5",
+      "prompt_text": "Medium close-up, slight zoom in, hands opening gray-white striped soft fabric storage bag with dark gray zipper and handles, placing it on lap, bright warm home lighting, UGC mobile style, vertical format, 9:16 aspect ratio, portrait orientation, no timecode, no subtitles, no grids, no multiple panels.",
+      "voiceover": "Deploying the soft storage bag."
+    },
+    {
+      "shot_number": "分镜6",
+      "prompt_text": "Close-up, fixed overhead shot, hands moving downward, grabbing folded clothes, stacking neatly inside gray-white striped soft storage bag, dark gray piping visible, bright warm home lighting, UGC mobile style, vertical format, 9:16 aspect ratio, portrait orientation, no timecode, no subtitles, no grids, no multiple panels.",
+      "voiceover": "Stacking folded clothes inside the bag."
+    },
+    {
+      "shot_number": "分镜7",
+      "prompt_text": "Extreme close-up, fixed camera, hands pinching double zipper sliders, sliding horizontally to close gray-white striped soft storage bag, grabbing gray side handles, lifting upward, bright warm home lighting, UGC mobile style, vertical format, 9:16 aspect ratio, portrait orientation, no timecode, no subtitles, no grids, no multiple panels.",
+      "voiceover": "Closing the bag and lifting the handles."
+    }
+  ]
+}

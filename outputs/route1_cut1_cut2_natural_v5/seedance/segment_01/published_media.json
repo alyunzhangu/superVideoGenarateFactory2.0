@@ -1,0 +1,20 @@
+[
+  {
+    "filename": "segment_01_v5.png",
+    "local_path": "outputs/route1_cut1_cut2_natural_v5/storyboards/segment_01_v5.png",
+    "object_key": "inputs/segment_01_v5.png",
+    "url": "https://veo-1304429692.cos.ap-guangzhou.myqcloud.com/tkagent/flow-frames/route1-cut1-cut2-natural-v5/inputs/segment_01_v5.png"
+  },
+  {
+    "filename": "character_board_01.png",
+    "local_path": "media/character_board_01.png",
+    "object_key": "inputs/character_board_01.png",
+    "url": "https://veo-1304429692.cos.ap-guangzhou.myqcloud.com/tkagent/flow-frames/route1-cut1-cut2-natural-v5/inputs/character_board_01.png"
+  },
+  {
+    "filename": "product_board_01.png",
+    "local_path": "media/product_board_01.png",
+    "object_key": "inputs/product_board_01.png",
+    "url": "https://veo-1304429692.cos.ap-guangzhou.myqcloud.com/tkagent/flow-frames/route1-cut1-cut2-natural-v5/inputs/product_board_01.png"
+  }
+]

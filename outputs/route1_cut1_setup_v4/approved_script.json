@@ -1,0 +1,51 @@
+{
+  "source": "user revision after v3 storyboard; route 1",
+  "revision_note": "Cut 1 now sets up the brown-haired woman hidden inside the wardrobe before she exits in Cut 2.",
+  "global_style": "bright warm home lighting, mixed natural and overhead light, UGC mobile photography style, visible living traces, slight messy aesthetic",
+  "target_ratio": "9:16",
+  "duration_seconds": 12,
+  "shots": [
+    {
+      "cut": 1,
+      "time": "00.0-01.5s",
+      "description": "Medium shot, fixed camera, Malay hijab woman holding one baby with her left arm, right hand pulling the black metal handle of a white wardrobe. The wardrobe door is just opening, packed clothes visibly bulge outward, and a subtle partial clue of the hidden brown-haired woman appears in the narrow gap, such as one white sneaker, black-jean knee, beige sleeve, or hand behind the clothes, without fully revealing her yet.",
+      "voiceover": "Opening the wardrobe door."
+    },
+    {
+      "cut": 2,
+      "time": "01.5-03.2s",
+      "description": "Medium shot, fixed camera, white wardrobe opens wider and massive dark clothes spill outward; brown-haired woman in beige T-shirt, black jeans, and white shoes is fully visible stepping or sliding out from the wardrobe threshold, with complete head, torso, arms, legs, and shoes separated from wardrobe panels; falling clothes move behind and beside her without passing through her body; Malay hijab mother holding baby leans backward in surprise while keeping baby safe.",
+      "voiceover": "Clothes dislodging and falling."
+    },
+    {
+      "cut": 3,
+      "time": "03.2-04.8s",
+      "description": "Full shot, slight camera shake, same brown-haired woman finishes tumbling forward from the wardrobe threshold and falls backward onto the clothes pile, legs raised, physically plausible comic fall with no body intersection through wardrobe doors or clothing pile.",
+      "voiceover": "Subject falling onto the clothing pile."
+    },
+    {
+      "cut": 4,
+      "time": "04.8-06.4s",
+      "description": "Medium close-up, downward tilt, same brown-haired woman sitting up among clothes, palms facing outward.",
+      "voiceover": "Subject sitting upright."
+    },
+    {
+      "cut": 5,
+      "time": "06.4-08.0s",
+      "description": "Medium close-up, slight zoom in, hands opening gray-white striped soft fabric storage bag with dark gray zipper and handles, placing it on lap or floor.",
+      "voiceover": "Deploying the soft storage bag."
+    },
+    {
+      "cut": 6,
+      "time": "08.0-10.2s",
+      "description": "Close-up, fixed overhead shot, hands moving downward, grabbing folded clothes, stacking neatly inside gray-white striped soft storage bag.",
+      "voiceover": "Stacking folded clothes inside the bag."
+    },
+    {
+      "cut": 7,
+      "time": "10.2-12.0s",
+      "description": "Extreme close-up, fixed camera, hands pinching double zipper sliders, sliding horizontally to close gray-white striped soft storage bag, grabbing gray side handles, lifting upward.",
+      "voiceover": "Closing the bag and lifting the handles."
+    }
+  ]
+}
