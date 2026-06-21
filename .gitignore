@@ -1,0 +1,14 @@
+__pycache__/
+*.pyc
+outputs/
+*.env
+!*.env.example
+tmp/
+storyboards/
+internal/
+media/
+continuity_manifest.json
+*.mp4
+*.mov
+*.wav
+.DS_Store
