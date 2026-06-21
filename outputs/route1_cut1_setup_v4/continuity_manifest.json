@@ -1,0 +1,46 @@
+{
+  "route": "seedance-storyboard-replication route 1",
+  "revision": "v4_cut1_setup",
+  "video_title": "Storage Bag Wardrobe Comedy",
+  "reference_video": "/Users/jiangyongjian/Downloads/p.mp4",
+  "reference_video_duration_seconds": 12.033333,
+  "segment_index": "1/1",
+  "segment_duration_seconds": 12.033333,
+  "target_video_ratio": "9:16",
+  "global_cut_range": "Cut 1-7",
+  "source_script_status": "user requested targeted Cut 1 revision after v3",
+  "characters": {
+    "mother_holding_child": {
+      "reference": "/Users/jiangyongjian/Downloads/character.png",
+      "identity_lock": "Malay Muslim woman, blush-beige hijab, cream knit cardigan, dusty-peach inner top, light trousers, natural hands, holding exactly one baby"
+    },
+    "demonstrator": {
+      "reference": "/Users/jiangyongjian/Downloads/ChatGPT Image 2026年6月2日 21_44_17.png",
+      "identity_lock": "brown-haired adult woman, beige short-sleeve T-shirt, black jeans, white sneakers, same face and shoulder-length hair",
+      "cut1_state": "hidden inside wardrobe behind compressed clothes; only a partial clue may be visible",
+      "cut2_state": "fully visible stepping or sliding out from wardrobe threshold"
+    }
+  },
+  "product": {
+    "reference": "/Users/jiangyongjian/Downloads/ChatGPT Image 2026年6月19日 21_55_31.png",
+    "identity_lock": "gray-white striped soft fabric storage bag, dark gray piping, double top zipper, two gray fabric handles, opaque woven fabric, flexible cuboid shape"
+  },
+  "continuity": {
+    "incoming_state": "Malay mother holds one baby beside a closed but overpacked white wardrobe; brown-haired demonstrator is hidden inside behind compressed clothes; product not visible",
+    "cut1_state": "door just begins opening; clothes bulge outward; a small hint of the hidden demonstrator appears in the gap but she is not fully revealed",
+    "cut2_state": "wardrobe opens wider; demonstrator fully emerges from the threshold while clothes fall around and behind her without clipping",
+    "cut3_state": "same demonstrator falls onto the clothing pile fully outside the wardrobe",
+    "outgoing_state": "brown-haired demonstrator has closed the gray-white striped soft storage bag by the double zipper and grips the gray handles for lift",
+    "audio": "English voiceover lines from provided script plus wardrobe, falling clothes, fabric handling, zipper, handles; no background music by default"
+  },
+  "negative_constraints": [
+    "no full brown-haired woman reveal in Cut 1",
+    "no empty wardrobe in Cut 1",
+    "no sudden Cut 2 appearance without Cut 1 setup",
+    "no person/object clipping",
+    "no extra babies",
+    "no extra characters",
+    "no subtitles",
+    "no reference_videos"
+  ]
+}

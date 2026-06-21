@@ -1,0 +1,10 @@
+{
+  "raw_error": "系统繁忙，请稍后重试",
+  "code": "unknown_provider_failure",
+  "title": "未识别的服务商错误",
+  "user_message": "服务商返回了尚未分类的错误，系统不会自动创建新的付费任务。",
+  "next_action": "保留原始错误和请求参数，先向用户说明，再决定是否修改或重新发起。",
+  "retry_allowed": false,
+  "requires_user_confirmation": true,
+  "prompt_or_image_change_required": false
+}

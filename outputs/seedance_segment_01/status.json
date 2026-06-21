@@ -1,0 +1,16 @@
+{
+  "code": 20000,
+  "data": {
+    "task_id": "videos_f33db783429d45fcbc5a6c0e163d2242",
+    "status": "completed",
+    "progress": 100,
+    "model": "seedance2.0-fast-md",
+    "created_at": 1781923985,
+    "completed_at": 1781924810,
+    "result": {
+      "image_url": "",
+      "video_url": "https://opcbucket.oss-cn-beijing.aliyuncs.com/sora_banana/api/2026-06-20/task_0ud8Wqt5OuG1hCk8KAEiZ6GGZupM3khu.mp4"
+    }
+  },
+  "msg": "ok"
+}
